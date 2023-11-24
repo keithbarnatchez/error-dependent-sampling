@@ -1,3 +1,3 @@
-# me-dependent-sampling
+# error-dependent-sampling
 
 

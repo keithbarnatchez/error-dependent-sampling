@@ -228,10 +228,11 @@ est_psi_a <- function(data,cross_fit=FALSE) {
   kappa_hat <- est_kappa(data)
   
   # Get the plug-in estimate and its SE
-  plugin <- mean(data$eta_hat1/data$lambda_hat1) - mean(data$eta_hat0/data$lambda_hat0)
+  plugin <- mean(data$eta_hat1/data$pi_hat1) - mean(data$eta_hat0/data$pi_hat0)
   pluginse <- sd(data$eta_hat1/data$pi_hat1 - data$eta_hat0/data$pi_hat0)/sqrt(nrow(data))
   
   # Get the one-step bias corrected estimate and its SE
+  # First for A=1
   psi1hatold <- with(data,
           (eta_hat1/pi_hat1 + 
               A*R*(Y-mu_hat1)/(kappa_hat*pi_hat1) +
@@ -260,6 +261,8 @@ est_psi_a <- function(data,cross_fit=FALSE) {
                     ((1-A)*R/(kappa_hat*pi_hat0))*(Y - eta_hat0/pi_hat0) -
                     (R*lambda_hat0)/(kappa_hat*pi_hat0)*(mu_hat0 - eta_hat0/pi_hat0)   
   )
+  
+  # Form the final one-step ATE estimate
   onestep <- mean(psi1hat - psi0hat)
   onestepse <- sd(psi1hat - psi0hat)/sqrt(nrow(data))
   

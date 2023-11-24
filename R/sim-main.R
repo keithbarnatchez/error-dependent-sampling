@@ -27,7 +27,7 @@ library(tidyverse)
 library(SuperLearner)
 library(ggridges)
 #-------------------------------------------------------------------------------
-# Setup parameters
+# Setup parameters that remain constant across simulations
 
 n <- 2500 ; p <- 3
 delta <- c(-0.1,-0.6,-0.9)
@@ -39,6 +39,14 @@ gamma <- rep(1,3) # interaction effects with tmt c(0.5,2.1,-1.2)
 eta <- c(0.6,-0.2,0.8,0.1,-0.3)
 omega <- 0.1 
 rho <- 0.1 # relative size of the validation data
+#-------------------------------------------------------------------------------
+# Setup parameters that vary across simulations
+
+
+rho <- c(0.5, 0.1, 0.2, 0.3, 0.4,0.5) # relative size of the validation data
+n <- c(500, 1000, 2500, 5000)
+
+# Severity of the measurement error
 #-------------------------------------------------------------------------------
 # Main simulation 
 
@@ -58,9 +66,10 @@ for (s in 1:nsim) {
   # Get tmt effect estimates / SEs
   psi_hat <- est_psi_a(df)
   
-  psi_hat_df[s,] <- unlist(psi_hat)
+  psi_hat_df[s,] <- unlist(psi_hat) # unpack output to store in df
 }
 
+# Form final output df
 colnames(psi_hat_df) <- colnames(data.frame(t(unlist(psi_hat))))
 psi_hat_df <- as.data.frame(psi_hat_df)
 #------------------------------------------------------------------------------
@@ -83,7 +92,7 @@ psi_hat_df_long <- psi_hat_df %>% select(onestep,plugin) %>%
                                estimator == 'plugin' ~ 'Plug in'))
 
 # Form the plot (distributions of estimates across sim iterations, by estimator)
-psi_hat_df_long  %>%
+tmt_eff_plot <- psi_hat_df_long  %>%
   ggplot(aes(x = psi_hat,
              y = as.factor(estimator),
              fill=as.factor(estimator))) +
@@ -93,6 +102,8 @@ psi_hat_df_long  %>%
   labs(x='Estimate',
        y='Method') +
   theme(legend.position = 'none') +
-  geom_vline(xintercept=2.5,color='black',linetype='dashed') 
+  geom_vline(xintercept=2.5,color='black',linetype='dashed') ; tmt_eff_plot
 
-ggsave
+# save the plot 
+ggsave('../figures/ridge_plot.pdf',tmt_eff_plot,width=6,height=4)
+
