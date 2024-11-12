@@ -58,7 +58,8 @@ gen_treatment <- function(X, delta) {
   return(A)
 }
 
-gen_selection <- function(X,Astar,Ystar,eta) {
+gen_selection <- function(X,Astar,Ystar,eta,
+                          rho) {
   #' Function for simulating selection into the validation study 
   #' 
   #' Arguments:
@@ -69,14 +70,14 @@ gen_selection <- function(X,Astar,Ystar,eta) {
   #' - A vector of selection indicators
   #' 
   
-  probs <- trim(expit(as.matrix(cbind(X,Astar,Ystar))%*%eta))
+  probs <- rho*trim(expit(as.matrix(cbind(X,Astar,Ystar))%*%eta))/mean(trim(expit(as.matrix(cbind(X,Astar,Ystar))%*%eta)))
   R <- rbinom(nrow(X),size=1,prob = probs)
   
-  return(R)
+  return(list(R=R,Rprobs=probs))
   
 }
 
-treatment_meas_model <- function(A, X, omega) {
+treatment_meas_model <- function(A, X, omega=0.95) {
   #' Function for simulating treatment measurement
   #' 
   #' Arguments:
@@ -90,7 +91,7 @@ treatment_meas_model <- function(A, X, omega) {
   
   # Simulate treatment measurements using a binary misclassification model,
   # where the misclassification probabilities depend on A and X
-  Astar <- ifelse(runif(length(A)) < 0.85, A, 1 - A)
+  Astar <- ifelse(runif(length(A)) < omega, A, 1 - A)
   
   return(Astar)
   
@@ -129,13 +130,14 @@ outcome_model <- function(A, X, beta, tau, gamma) {
   #' 
   
   # Simulate outcomes 
-  Y <- X%*%beta + tau*A + A*(X%*%gamma) + rnorm(nrow(X),mean=0,sd=1)
+  Y <- X%*%beta + tau*A + A*(X%*%gamma) + rnorm(nrow(X),mean=0,sd=rowSums(X))
   
   return(Y)
   
 }
 
-gen_data <- function(n,p,delta,nu,beta,gamma,eta,omega,tau) {
+gen_data <- function(n,p,delta,nu,beta,gamma,eta,omega,tau,
+                     rho) {
   #' Function for simulating data
   #' 
   #' Arguments:
@@ -166,9 +168,10 @@ gen_data <- function(n,p,delta,nu,beta,gamma,eta,omega,tau) {
   Ystar <- outcome_meas_model(Y,A,X,nu)
   
   # Selection into validation data
-  R <- gen_selection(X,Astar,Ystar,eta)
+  Rres <- gen_selection(X,Astar,Ystar,eta,rho)
+  R <- Rres$R ; Rprobs <- Rres$Rprobs
   
-  return(data.frame(X,A,Astar,Y,Ystar,R))
+  return(data.frame(X,A,Astar,Y,Ystar,R,Rprobs))
 }
 
 

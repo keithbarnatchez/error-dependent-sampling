@@ -29,7 +29,7 @@ library(ggridges)
 #-------------------------------------------------------------------------------
 # Setup parameters
 
-n <- 2500 ; p <- 3
+n <- 2500 ; p <- 3 # sample size, number of covariates
 delta <- c(-0.1,-0.6,-0.9)
 nu <- c(0.1,-0.1,0.1)
 beta <- c(1,2,-2) # outcome model main effects
@@ -39,6 +39,14 @@ gamma <- rep(1,3) # interaction effects with tmt c(0.5,2.1,-1.2)
 eta <- c(0.6,-0.2,0.8,0.1,-0.3)
 omega <- 0.1 
 rho <- 0.1 # relative size of the validation data
+#-------------------------------------------------------------------------------
+# Setup grids for parameters we want to vary
+
+n_grid <- c(1000, 2500, 5000, 1e4)
+rho_grid <- c(0.1, 0.2, 0.3, 0.4, 0.5)
+
+
+
 #-------------------------------------------------------------------------------
 # Main simulation 
 
